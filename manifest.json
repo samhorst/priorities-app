@@ -2,7 +2,7 @@
   "name": "Priorities",
   "short_name": "Priorities",
   "description": "Weekly priority tracker",
-  "start_url": "/",
+  "start_url": "/priorities-app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
