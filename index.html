@@ -34,6 +34,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .item-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);margin-bottom:8px;position:relative;overflow:hidden}
 .item-card.drag-over{border:1px dashed var(--blue)}
 .item-card.archived{opacity:.85}
+.item-card.recurring-card{border-left:3px solid var(--blue)}
 .swipe-bg{position:absolute;inset:0;display:flex;align-items:center;border-radius:var(--radius-lg);pointer-events:none;opacity:0;transition:opacity .15s}
 .swipe-bg.right{background:var(--green-bg);justify-content:flex-start;padding-left:20px}
 .swipe-bg.left{background:var(--red-bg);justify-content:flex-end;padding-right:20px}
@@ -52,11 +53,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .p-badge.p2{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber)}
 .p-badge.p3{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
 .p-badge.pn{background:var(--bg2);color:var(--text3);border-color:var(--border2)}
+.recur-badge{font-size:10px;padding:2px 6px;border-radius:6px;background:var(--blue-bg);color:var(--blue-text);border:1px solid var(--blue);flex-shrink:0;white-space:nowrap}
 .due-badge{font-size:11px;padding:2px 6px;border-radius:6px;white-space:nowrap;flex-shrink:0}
 .due-badge.ok{background:var(--bg2);color:var(--text3)}
 .due-badge.soon{background:var(--amber-bg);color:var(--amber-text)}
 .due-badge.overdue{background:var(--red-bg);color:var(--red-text);font-weight:500}
-.item-title{flex:1;font-size:14px;color:var(--text);min-width:0}
+/* inline title edit */
+.item-title{flex:1;font-size:14px;color:var(--text);min-width:0;cursor:text;border-radius:4px;padding:1px 3px;outline:none}
+.item-title:focus{background:var(--bg2);box-shadow:0 0 0 1px var(--blue);cursor:text}
 .icon-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:3px 6px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;gap:3px;transition:background .12s}
 .icon-btn:hover{background:var(--bg2);color:var(--text)}.icon-btn.active{color:var(--text)}
 .abtn{width:34px;height:34px;border-radius:var(--radius);border:1.5px solid;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:700;line-height:1;transition:background .15s,color .15s}
@@ -76,7 +80,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .notes-editor textarea:focus{box-shadow:0 0 0 2px var(--blue)}
 .notes-footer{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 .notes-hint{font-size:11px;color:var(--text3)}
-.char-count{font-size:11px;color:var(--text3);transition:color .2s}
+.char-count{font-size:11px;color:var(--text3)}
 .char-count.warn{color:var(--amber-text)}.char-count.limit{color:var(--red-text);font-weight:500}
 .checklist-items{margin-bottom:8px}
 .cl-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-radius:6px}
@@ -148,6 +152,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .p-opt.op2{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber)}
 .p-opt.op3{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
 .p-opt.opn{background:var(--bg2);color:var(--text3)}
+/* recur toggle in modal */
+.recur-toggle{display:flex;align-items:center;gap:10px;margin-top:6px}
+.recur-toggle label{font-size:13px;color:var(--text2);cursor:pointer}
+.toggle-switch{width:36px;height:20px;border-radius:10px;background:var(--bg3);border:0.5px solid var(--border2);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-switch.on{background:var(--blue)}
+.toggle-switch::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch.on::after{transform:translateX(16px)}
 .mftr{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 .mftr button{padding:6px 14px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);cursor:pointer}
 .mftr .sv{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
@@ -217,6 +228,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <input type="text" id="add-rsn" placeholder="Why?">
     <div class="flbl">Due date <span class="o">(optional)</span></div>
     <input type="date" id="add-due">
+    <div class="flbl">Recurring</div>
+    <div class="recur-toggle">
+      <div class="toggle-switch" id="add-recur-toggle" onclick="toggleAddRecur()"></div>
+      <label onclick="toggleAddRecur()">Reappears every Monday</label>
+    </div>
     <div class="mftr">
       <button id="add-cancel-btn">Cancel</button>
       <button class="sv" id="add-sv" disabled>Add</button>
@@ -242,7 +258,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 var items=[],compItems=[],nid=1,clid=1;
-var esid=null,pstat=null,astat='green',addPri='',dsrc=null;
+var esid=null,pstat=null,astat='green',addPri='',addRecur=false,dsrc=null;
 var compOpen=false,archOpen=false,searchQ='';
 var archive={},archYearOpen={},archMonthOpen={},archWeekOpen={},archNotesOpen={};
 
@@ -265,7 +281,30 @@ function dueBadge(due){if(!due)return '';var now=new Date();var d=new Date(due+'
 
 function saveState(){try{localStorage.setItem('pw_v1_items',JSON.stringify(items));localStorage.setItem('pw_v1_comp',JSON.stringify(compItems));localStorage.setItem('pw_v1_archive',JSON.stringify(archive));localStorage.setItem('pw_v1_nid',String(nid));localStorage.setItem('pw_v1_clid',String(clid));localStorage.setItem('pw_v1_weekkey',wkKey());}catch(e){}}
 function loadState(){try{var si=localStorage.getItem('pw_v1_items');if(si)items=JSON.parse(si);var sc=localStorage.getItem('pw_v1_comp');if(sc)compItems=JSON.parse(sc);var sa=localStorage.getItem('pw_v1_archive');if(sa)archive=JSON.parse(sa);var sn=localStorage.getItem('pw_v1_nid');if(sn)nid=parseInt(sn)||1;var sl=localStorage.getItem('pw_v1_clid');if(sl)clid=parseInt(sl)||1;}catch(e){}}
-function checkWeekRollover(){var stored=localStorage.getItem('pw_v1_weekkey');var cur=wkKey();if(stored&&stored!==cur){try{var prev=JSON.parse(localStorage.getItem('pw_v1_comp')||'[]');var prevWk=prev.filter(function(x){return x.doneTs&&wkKey(new Date(x.doneTs))===stored;});if(prevWk.length>0){var d=new Date(stored+'T12:00:00');var mk=monthKey(d),ml=monthLabel(d),yr=yearOf(d),wl=wkLabel(d);if(!archive[stored])archive[stored]={label:wl,monthKey:mk,monthLabel:ml,year:yr,items:[]};prevWk.forEach(function(it){if(!archive[stored].items.find(function(x){return x.id===it.id;}))archive[stored].items.push(it);});}}catch(e){}}localStorage.setItem('pw_v1_weekkey',cur);}
+
+function checkWeekRollover(){
+  var stored=localStorage.getItem('pw_v1_weekkey');
+  var cur=wkKey();
+  if(stored&&stored!==cur){
+    try{
+      // archive last week's completed
+      var prev=JSON.parse(localStorage.getItem('pw_v1_comp')||'[]');
+      var prevWk=prev.filter(function(x){return x.doneTs&&wkKey(new Date(x.doneTs))===stored;});
+      if(prevWk.length>0){var d=new Date(stored+'T12:00:00');var mk=monthKey(d),ml=monthLabel(d),yr=yearOf(d),wl=wkLabel(d);if(!archive[stored])archive[stored]={label:wl,monthKey:mk,monthLabel:ml,year:yr,items:[]};prevWk.forEach(function(it){if(!archive[stored].items.find(function(x){return x.id===it.id;}))archive[stored].items.push(it);});}
+      // re-add recurring items to top of list (reset their checklist, keep status green)
+      var alreadyIds=items.map(function(x){return x.id;});
+      items.forEach(function(it){
+        if(it.recurring){it.status='green';it.reason='';it.checklist=it.checklist.map(function(c){return {id:c.id,text:c.text,done:false};});}
+      });
+      // also re-add any recurring items that were completed last week
+      prev.filter(function(x){return x.recurring&&wkKey(new Date(x.doneTs))===stored;}).forEach(function(it){
+        if(!alreadyIds.includes(it.id)){var fresh={id:it.id,title:it.title,status:'green',reason:'',priority:it.priority||'',due:'',notes:it.notes||'',notesOpen:false,clOpen:false,recurring:true,checklist:(it.checklist||[]).map(function(c){return {id:c.id,text:c.text,done:false};})};items.unshift(fresh);}
+      });
+    }catch(e){}
+  }
+  localStorage.setItem('pw_v1_weekkey',cur);
+}
+
 loadState();checkWeekRollover();saveState();
 document.getElementById('week-lbl').textContent=wkLabel();
 
@@ -276,14 +315,15 @@ document.getElementById('search-clear').onclick=function(){document.getElementBy
 // add modal
 function setAddP(p){addPri=p;['1','2','3',''].forEach(function(v){var el=document.getElementById('ap'+(v||'n'));if(el)el.classList.toggle('sel',v===p);});}
 ['ap1','ap2','ap3','apn'].forEach(function(id){document.getElementById(id).onclick=function(){setAddP(id==='apn'?'':id.slice(2));};});
-function openAdd(){document.getElementById('add-title').value='';document.getElementById('add-rsn').value='';document.getElementById('add-due').value='';astat='green';setAddP('');document.getElementById('og').classList.add('sel');document.getElementById('or2').classList.remove('sel');document.getElementById('add-sv').disabled=true;document.getElementById('add-modal').classList.add('open');setTimeout(function(){document.getElementById('add-title').focus();},40);}
+function toggleAddRecur(){addRecur=!addRecur;document.getElementById('add-recur-toggle').classList.toggle('on',addRecur);}
+function openAdd(){document.getElementById('add-title').value='';document.getElementById('add-rsn').value='';document.getElementById('add-due').value='';astat='green';addPri='';addRecur=false;setAddP('');document.getElementById('og').classList.add('sel');document.getElementById('or2').classList.remove('sel');document.getElementById('add-recur-toggle').classList.remove('on');document.getElementById('add-sv').disabled=true;document.getElementById('add-modal').classList.add('open');setTimeout(function(){document.getElementById('add-title').focus();},40);}
 document.getElementById('plus-btn').onclick=openAdd;
 document.getElementById('add-cancel-btn').onclick=function(){document.getElementById('add-modal').classList.remove('open');};
 document.getElementById('add-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 document.getElementById('add-title').oninput=function(){document.getElementById('add-sv').disabled=!this.value.trim();};
 document.getElementById('og').onclick=function(){astat='green';this.classList.add('sel');document.getElementById('or2').classList.remove('sel');};
 document.getElementById('or2').onclick=function(){astat='red';this.classList.add('sel');document.getElementById('og').classList.remove('sel');};
-document.getElementById('add-sv').onclick=function(){var t=document.getElementById('add-title').value.trim();if(!t)return;items.push({id:nid++,title:t,status:astat,reason:document.getElementById('add-rsn').value.trim(),priority:addPri,due:document.getElementById('add-due').value||'',notes:'',notesOpen:false,clOpen:false,checklist:[]});document.getElementById('add-modal').classList.remove('open');saveState();render();};
+document.getElementById('add-sv').onclick=function(){var t=document.getElementById('add-title').value.trim();if(!t)return;items.push({id:nid++,title:t,status:astat,reason:document.getElementById('add-rsn').value.trim(),priority:addPri,due:document.getElementById('add-due').value||'',notes:'',notesOpen:false,clOpen:false,recurring:addRecur,checklist:[]});document.getElementById('add-modal').classList.remove('open');saveState();render();};
 document.getElementById('add-modal').addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.type!=='date'){e.preventDefault();document.getElementById('add-sv').onclick();}if(e.key==='Escape')this.classList.remove('open');});
 
 // status modal
@@ -293,7 +333,6 @@ document.getElementById('stat-cancel-btn').onclick=function(){document.getElemen
 document.getElementById('smModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 document.getElementById('stat-save-btn').onclick=function(){var it=items.find(function(x){return x.id===esid;});if(it){it.status=pstat;it.reason=document.getElementById('sreason').value.trim();}document.getElementById('smModal').classList.remove('open');saveState();render();};
 
-// drawers
 document.getElementById('comp-hdr').onclick=function(){compOpen=!compOpen;var tw=compItems.filter(function(x){return thisWk(x.doneTs);});document.getElementById('comp-list').style.display=compOpen?'block':'none';document.getElementById('comp-chev').textContent=compOpen?'▲':'▼';document.getElementById('export-row').style.display=(compOpen&&tw.length>0)?'flex':'none';};
 document.getElementById('export-btn').onclick=function(){var tw=compItems.filter(function(x){return thisWk(x.doneTs);});var text=wkLabel()+'\n\nAccomplishments:\n'+tw.map(function(x){return '\u2022 '+x.title;}).join('\n');navigator.clipboard.writeText(text).then(function(){var c=document.getElementById('copy-confirm');c.style.display='inline';setTimeout(function(){c.style.display='none';},2000);});};
 document.getElementById('arch-toggle-btn').onclick=function(){archOpen=!archOpen;document.getElementById('arch-body').classList.toggle('open',archOpen);document.getElementById('arch-chev').textContent=archOpen?'▲':'▼';if(archOpen)renderArchive();};
@@ -303,6 +342,8 @@ document.getElementById('import-input').onchange=function(e){var file=e.target.f
 function openStatModal(id){esid=id;var it=items.find(function(x){return x.id===id;});if(!it)return;pstat=it.status;document.getElementById('sreason').value=it.reason||'';document.getElementById('seg').classList.toggle('sel',pstat==='green');document.getElementById('ser').classList.toggle('sel',pstat==='red');document.getElementById('smModal').classList.add('open');}
 function cyclePriority(id){var it=items.find(function(x){return x.id===id;});if(!it)return;var c={'':'1','1':'2','2':'3','3':''};it.priority=c[it.priority||'']||'';saveState();render();}
 function setDue(id,val){var it=findItem(id);if(it){it.due=val;saveState();render();}}
+function toggleRecurring(id){var it=items.find(function(x){return x.id===id;});if(!it)return;it.recurring=!it.recurring;saveState();render();}
+function saveTitle(id,val){var it=findItem(id);if(it&&val.trim()){it.title=val.trim();saveState();}}
 function completeItem(id){var i=items.findIndex(function(x){return x.id===id;});if(i<0)return;var it=items.splice(i,1)[0];var n=new Date();it.doneAt=fmt(n);it.doneTs=n.getTime();compItems.unshift(it);saveState();render();}
 function deleteItem(id){var i=items.findIndex(function(x){return x.id===id;});if(i<0)return;items.splice(i,1);saveState();render();}
 function restoreItem(id){var i=compItems.findIndex(function(x){return x.id===id;});if(i<0)return;var it=compItems.splice(i,1)[0];delete it.doneAt;delete it.doneTs;it.notesOpen=false;it.clOpen=false;items.push(it);saveState();render();}
@@ -331,17 +372,35 @@ function buildCard(it,archived){
   var tip=escH(it.reason||(it.status==='green'?'Good to go':'Blocked'));
   var pri=it.priority||'';
   var pBadge=pri?'<span class="p-badge p'+pri+'" onclick="cyclePriority('+it.id+')" title="Click to change">P'+pri+'</span>':'<span class="p-badge pn" onclick="cyclePriority('+it.id+')" title="Set priority">P?</span>';
+  var recurBadge=it.recurring?'<span class="recur-badge" onclick="toggleRecurring('+it.id+')" title="Click to remove recurring" style="cursor:pointer">↻ weekly</span>':'';
   var dBadge=(!archived&&it.due)?dueBadge(it.due):'';
   var notesHTML='';
-  if(it.notesOpen){notesHTML='<div class="sub-section open"><div class="notes-editor">'+((!archived)?'<div class="due-row"><label>Due date</label><input type="date" value="'+(it.due||'')+'" onchange="setDue('+it.id+',this.value)"><button class="clear-due" onclick="setDue('+it.id+',\'\')">Clear</button></div>':'')+'<textarea id="nta'+it.id+'" oninput="saveNotes('+it.id+')">'+escH(it.notes)+'</textarea><div class="notes-footer"><span class="notes-hint">* bullet &nbsp; 1. list</span><span class="char-count" id="cc'+it.id+'">'+it.notes.length+' chars</span></div></div></div>';}
+  if(it.notesOpen){
+    var dueSection=(!archived)?'<div class="due-row"><label>Due date</label><input type="date" value="'+(it.due||'')+'" onchange="setDue('+it.id+',this.value)"><button class="clear-due" onclick="setDue('+it.id+',\'\')">Clear</button></div>'+'<div class="due-row"><label>Recurring</label><div class="toggle-switch'+(it.recurring?' on':'')+'" onclick="toggleRecurring('+it.id+')" style="cursor:pointer"></div><label onclick="toggleRecurring('+it.id+')" style="cursor:pointer;font-size:12px;color:var(--text3)">Reappears every Monday</label></div>':'';
+    notesHTML='<div class="sub-section open"><div class="notes-editor">'+dueSection+'<textarea id="nta'+it.id+'" oninput="saveNotes('+it.id+')">'+escH(it.notes)+'</textarea><div class="notes-footer"><span class="notes-hint">* bullet &nbsp; 1. list</span><span class="char-count" id="cc'+it.id+'">'+it.notes.length+' chars</span></div></div></div>';
+  }
   var clHTML='';
   if(it.clOpen){var d2=it.checklist.filter(function(x){return x.done;}).length,t2=it.checklist.length;var p2=t2>0?'<div class="cl-progress">'+d2+' / '+t2+' done</div>':'';var r2='';it.checklist.forEach(function(ci){r2+='<div class="cl-item'+(ci.done?' done':'')+'">'+'<div class="chkbox'+(ci.done?' on':'')+'" onclick="tglClItem('+it.id+','+ci.id+')">'+(ci.done?'✓':'')+'</div>'+'<span class="cl-label" contenteditable="true" onblur="saveClLabel('+it.id+','+ci.id+',this.textContent)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}">'+escH(ci.text)+'</span>'+'<button class="cl-del" onclick="delClItem('+it.id+','+ci.id+')">×</button>'+'</div>';});clHTML='<div class="sub-section open"><div id="clwrap'+it.id+'">'+p2+'<div class="checklist-items">'+r2+'</div>'+'<div class="cl-add-row"><input id="clinp'+it.id+'" type="text" placeholder="Add item…" onkeydown="clKD('+it.id+',event)"><button onclick="addClItem('+it.id+')">Add</button></div></div></div>';}
   var actionBtns=archived?'<button class="abtn restore" onclick="restoreItem('+it.id+')" title="Restore">↩</button><button class="abtn dl" onclick="deleteCompItem('+it.id+')" title="Delete">✕</button>':'<button class="abtn ck" onclick="completeItem('+it.id+')" title="Complete">✓</button><button class="abtn dl" onclick="deleteItem('+it.id+')" title="Delete">✕</button>';
   var meta=archived?'<span class="di-badge">done</span><span style="font-size:11px;color:var(--text3);white-space:nowrap;margin-right:2px">'+it.doneAt+'</span>':'';
   var card=document.createElement('div');
-  card.className='item-card'+(archived?' archived':'')+(hasOpen?' has-open':'');
-  var inner='<div class="swipe-bg right"><span>✓</span></div><div class="swipe-bg left"><span>✕</span></div><div class="swipe-content"><div class="item-main">'+(archived?'':'<span class="drag-handle">⠿</span>')+'<div class="tip-wrap"><div class="sdot '+it.status+(archived?'':' clickable')+'"'+(archived?'':' onclick="openStatModal('+it.id+')"')+'>'+sdot+'</div><div class="tip">'+tip+'</div></div>'+pBadge+'<span class="item-title">'+hlText(it.title,searchQ)+'</span>'+meta+dBadge+'<button class="icon-btn'+(it.notesOpen?' active':'')+'" onclick="tglNotes('+it.id+')" title="Notes">📝 '+nArr+'</button>'+'<button class="icon-btn'+(it.clOpen?' active':'')+'" onclick="tglCl('+it.id+')" title="Checklist">☑'+cCnt+' '+cArr+'</button>'+actionBtns+'</div>'+notesHTML+clHTML+'</div>';
+  card.className='item-card'+(archived?' archived':'')+(hasOpen?' has-open':'')+(it.recurring&&!archived?' recurring-card':'');
+
+  // inline-editable title
+  var titleEl='<span class="item-title" contenteditable="'+(archived?'false':'true')+'" onblur="saveTitle('+it.id+',this.textContent)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}" title="Click to edit">'+hlText(it.title,searchQ)+'</span>';
+
+  var inner='<div class="swipe-bg right"><span>✓</span></div><div class="swipe-bg left"><span>✕</span></div><div class="swipe-content"><div class="item-main">'
+    +(archived?'':'<span class="drag-handle">⠿</span>')
+    +'<div class="tip-wrap"><div class="sdot '+it.status+(archived?'':' clickable')+'"'+(archived?'':' onclick="openStatModal('+it.id+')"')+'>'+sdot+'</div><div class="tip">'+tip+'</div></div>'
+    +pBadge
+    +titleEl
+    +meta+dBadge+recurBadge
+    +'<button class="icon-btn'+(it.notesOpen?' active':'')+'" onclick="tglNotes('+it.id+')" title="Notes">📝 '+nArr+'</button>'
+    +'<button class="icon-btn'+(it.clOpen?' active':'')+'" onclick="tglCl('+it.id+')" title="Checklist">☑'+cCnt+' '+cArr+'</button>'
+    +actionBtns
+    +'</div>'+notesHTML+clHTML+'</div>';
   card.innerHTML=inner;
+
   if(!archived){
     addSwipe(card,it);
     if(!hasOpen){
@@ -421,7 +480,6 @@ function render(){
   if(archOpen)renderArchive();
 }
 render();
-
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
 </script>
 </body>
