@@ -350,7 +350,7 @@ document.getElementById('smModal').addEventListener('click',function(e){if(e.tar
 document.getElementById('stat-save-btn').onclick=function(){var it=items.find(function(x){return x.id===esid;});if(it){it.status=pstat;it.reason=document.getElementById('sreason').value.trim();}document.getElementById('smModal').classList.remove('open');saveState();render();};
 
 // completed drawer
-document.getElementById('comp-hdr').onclick=function(){compOpen=!compOpen;var tw=compItems.filter(function(x){return thisWk(x.doneTs);});document.getElementById('comp-list').style.display=compOpen?'block':'none';document.getElementById('comp-chev').textContent=compOpen?'▲':'▼';document.getElementById('export-row').style.display=(compOpen&&tw.length>0)?'flex':'none';};
+document.getElementById('comp-hdr').onclick=function(){compOpen=!compOpen;var tw=compItems.filter(function(x){return thisWk(x.doneTs);});document.getElementById('comp-list').style.display=compOpen?'block':'none';document.getElementById('comp-chev').textContent=compOpen?'▲':'▼';document.getElementById('export-row').style.display=(compOpen&&tw.length>0)?'flex':'none';if(compOpen)renderCompList();};
 
 // email copy button
 document.getElementById('export-btn').onclick=function(){
