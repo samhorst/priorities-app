@@ -195,6 +195,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div id="app">
   <div class="header">
     <h2>Priorities</h2>
+    <button class="add-plus" id="plus-btn">+</button>
     <span id="week-lbl"></span>
     <div class="header-right">
       <button class="theme-toggle" id="theme-toggle">🌙</button>
@@ -560,9 +561,7 @@ function render(){
   if(archOpen)renderArchive();
 }
 
-// wire + button after render is defined
-document.getElementById('plus-btn')||document.querySelector('.add-plus');
-document.querySelector('.add-plus').onclick=openAdd;
+document.getElementById('plus-btn').onclick=openAdd;
 
 render();
 
