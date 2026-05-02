@@ -512,7 +512,10 @@ function render(){
   var hc=tw.length>0;
   document.getElementById('comp-wrap').style.display=hc?'block':'none';
   document.getElementById('comp-cnt').textContent=hc?'('+tw.length+')':'';
-  if(compOpen)renderCompList();
+  var compListEl=document.getElementById('comp-list');
+  compListEl.style.display=compOpen?'block':'none';
+  document.getElementById('comp-chev').textContent=compOpen?'▲':'▼';
+  if(compOpen){renderCompList();}
   document.getElementById('export-row').style.display=(compOpen&&hc)?'flex':'none';
   if(archOpen)renderArchive();
 }
