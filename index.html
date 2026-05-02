@@ -366,9 +366,17 @@ document.getElementById('comp-hdr').onclick=function(){
 
 // email copy button
 document.getElementById('export-btn').onclick=function(){
-  var tw=compItems.filter(function(x){return thisWk(x.doneTs);});
-  var lastWeekLines=tw.map(function(x){return '\u2022 '+x.title;}).join('\n');
-  var thisWeekLines=items.map(function(x){return '\u2022 '+x.title;}).join('\n');
+  // current week completed items (already in compItems)
+  var currentComp=compItems.map(function(x){return '\u2022 '+x.title;});
+  // previous week items from archive
+  var prevWk='';
+  var wks=Object.keys(archive).sort().reverse();
+  if(wks.length>0)prevWk=wks[0];
+  var prevLines=prevWk?archive[prevWk].items.map(function(x){return '\u2022 '+x.title;}):[];
+  // combine: current week completed first, then last week's archived
+  var allLastWeek=currentComp.concat(prevLines);
+  var lastWeekLines=allLastWeek.length>0?allLastWeek.join('\n'):'(nothing completed)';
+  var thisWeekLines=items.length>0?items.map(function(x){return '\u2022 '+x.title;}).join('\n'):'(no active priorities)';
   var email='Hi everyone,\n\nLast Week:\n'+lastWeekLines+'\n\nThis Week:\n'+thisWeekLines;
   navigator.clipboard.writeText(email).then(function(){var c=document.getElementById('copy-confirm');c.style.display='inline';setTimeout(function(){c.style.display='none';},2000);});
 };
