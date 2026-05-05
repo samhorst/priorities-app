@@ -451,7 +451,7 @@ function renderCompList(){
   var cl=document.getElementById('comp-list');
   if(!cl)return;
   cl.innerHTML='';
-  var tw=compItems.filter(function(x){return thisWk(x.doneTs);});
+  var tw=compItems;
   if(tw.length===0){
     cl.innerHTML='<p style="font-size:13px;color:var(--text3);padding:8px 4px">No completed items yet this week.</p>';
     return;
