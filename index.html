@@ -309,6 +309,17 @@ function checkWeekRollover(){var stored=localStorage.getItem('pw_v1_weekkey');va
 loadState();checkWeekRollover();saveState();
 document.getElementById('week-lbl').textContent=wkLabel();
 
+// check for week rollover every 5 minutes in case app stays open overnight
+setInterval(function(){
+  var stored=localStorage.getItem('pw_v1_weekkey');
+  if(stored&&stored!==wkKey()){
+    checkWeekRollover();
+    saveState();
+    document.getElementById('week-lbl').textContent=wkLabel();
+    render();
+  }
+},5*60*1000);
+
 // search
 document.getElementById('search-input').oninput=function(){searchQ=this.value.trim();document.getElementById('search-clear').style.display=searchQ?'block':'none';render();};
 document.getElementById('search-clear').onclick=function(){document.getElementById('search-input').value='';searchQ='';this.style.display='none';render();};
