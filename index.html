@@ -294,7 +294,7 @@ updateToggle();
 
 function fmt(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function wkLabel(d){d=d||new Date();var s=new Date(d);s.setDate(d.getDate()-d.getDay()+1);var e=new Date(s);e.setDate(s.getDate()+6);var f=function(x){return x.toLocaleDateString('en-US',{month:'short',day:'numeric'});};return 'Week of '+f(s)+' \u2013 '+f(e);}
-function wkKey(d){d=d||new Date();var s=new Date(d);s.setDate(d.getDate()-d.getDay()+1);return s.toISOString().split('T')[0];}
+function wkKey(d){d=d||new Date();var s=new Date(d);s.setDate(d.getDate()-d.getDay()+1);var y=s.getFullYear(),m=String(s.getMonth()+1).padStart(2,'0'),dy=String(s.getDate()).padStart(2,'0');return y+'-'+m+'-'+dy;}
 function monthKey(d){var s=new Date(d);s.setDate(s.getDate()-s.getDay()+1);return s.getFullYear()+'-'+String(s.getMonth()+1).padStart(2,'0');}
 function monthLabel(d){var s=new Date(d);s.setDate(s.getDate()-s.getDay()+1);return s.toLocaleDateString('en-US',{month:'long'});}
 function yearOf(d){var s=new Date(d);s.setDate(s.getDate()-s.getDay()+1);return s.getFullYear();}
